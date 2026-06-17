@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -14,7 +15,7 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <div>Dashboard</div>
+                <Dashboard />
               </Layout>
             </ProtectedRoute>
           }
