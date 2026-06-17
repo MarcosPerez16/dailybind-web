@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 
 export default function App() {
   return (
@@ -12,7 +13,9 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <div>Dashboard</div>
+              <Layout>
+                <div>Dashboard</div>
+              </Layout>
             </ProtectedRoute>
           }
         />
