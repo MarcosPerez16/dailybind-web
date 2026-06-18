@@ -6,8 +6,7 @@ import api from "../lib/api";
 // --- Assumed metrics response shapes (see plan). Fields read defensively. ---
 interface SummaryRow {
   agentId: string;
-  agentName?: string;
-  name?: string;
+  agentName: string;
   totalSales?: number;
   totalPremium?: number;
 }
@@ -123,7 +122,7 @@ export default function Dashboard() {
 
         const merged: LeaderboardRow[] = summary.map((s) => ({
           agentId: s.agentId,
-          agentName: s.agentName ?? s.name ?? "Unknown",
+          agentName: s.agentName,
           totalSales: s.totalSales ?? 0,
           totalPremium: s.totalPremium ?? 0,
           bundlePercent: bundleByAgent.get(s.agentId) ?? 0,
