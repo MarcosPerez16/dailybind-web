@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import api from "../lib/api";
 
-// --- Assumed metrics response shapes (see plan). Fields read defensively. ---
 interface SummaryRow {
   agentId: string;
   agentName: string;
@@ -12,11 +11,54 @@ interface SummaryRow {
 }
 interface BundleRow {
   agentId: string;
-  bundlePercent?: number;
+  bundlePercentage?: number;
 }
 interface PifRow {
   agentId: string;
-  pifPercent?: number;
+  pifPercentage?: number;
+}
+
+type BiLimitKey =
+  | "LIMIT_25_50"
+  | "LIMIT_50_100"
+  | "LIMIT_100_300"
+  | "LIMIT_250_500"
+  | "LIMIT_300_500"
+  | "LIMIT_500_500";
+
+const BI_LIMIT_KEYS: BiLimitKey[] = [
+  "LIMIT_25_50",
+  "LIMIT_50_100",
+  "LIMIT_100_300",
+  "LIMIT_250_500",
+  "LIMIT_300_500",
+  "LIMIT_500_500",
+];
+
+const BI_LIMIT_LABELS: Record<BiLimitKey, string> = {
+  LIMIT_25_50: "25/50",
+  LIMIT_50_100: "50/100",
+  LIMIT_100_300: "100/300",
+  LIMIT_250_500: "250/500",
+  LIMIT_300_500: "300/500",
+  LIMIT_500_500: "500/500",
+};
+
+interface BiLimitsApiRow {
+  agentId: string;
+  totalAutoSales?: number;
+  tiers?: Partial<Record<BiLimitKey, number>>;
+}
+
+interface BiLimitDisplayRow {
+  agentId: string;
+  agentName: string;
+  tiers: Record<BiLimitKey, number>;
+}
+
+interface UserRow {
+  id: string;
+  name: string;
 }
 
 // Merged per-agent row used by the leaderboard.
@@ -89,6 +131,7 @@ function StatCard({ label, value, icon }: StatCardProps) {
 
 export default function Dashboard() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
+  const [biLimitRows, setBiLimitRows] = useState<BiLimitDisplayRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -99,11 +142,14 @@ export default function Dashboard() {
       setLoading(true);
       setError("");
       try {
-        const [summaryRes, bundlesRes, pifRes] = await Promise.all([
-          api.get("/metrics/summary"),
-          api.get("/metrics/bundles"),
-          api.get("/metrics/pif"),
-        ]);
+        const [summaryRes, bundlesRes, pifRes, biLimitsRes, usersRes] =
+          await Promise.all([
+            api.get("/metrics/summary"),
+            api.get("/metrics/bundles"),
+            api.get("/metrics/pif"),
+            api.get("/metrics/bi-limits"),
+            api.get("/users"),
+          ]);
 
         const summary: SummaryRow[] = Array.isArray(summaryRes.data)
           ? summaryRes.data
@@ -114,10 +160,10 @@ export default function Dashboard() {
         const pif: PifRow[] = Array.isArray(pifRes.data) ? pifRes.data : [];
 
         const bundleByAgent = new Map(
-          bundles.map((b) => [b.agentId, b.bundlePercent ?? 0])
+          bundles.map((b) => [b.agentId, b.bundlePercentage ?? 0])
         );
         const pifByAgent = new Map(
-          pif.map((p) => [p.agentId, p.pifPercent ?? 0])
+          pif.map((p) => [p.agentId, p.pifPercentage ?? 0])
         );
 
         const merged: LeaderboardRow[] = summary.map((s) => ({
@@ -131,7 +177,34 @@ export default function Dashboard() {
 
         merged.sort((a, b) => b.totalPremium - a.totalPremium);
 
-        if (active) setRows(merged);
+        const userMap = new Map<string, string>(
+          (Array.isArray(usersRes.data) ? (usersRes.data as UserRow[]) : []).map(
+            (u) => [u.id, u.name]
+          )
+        );
+
+        const biLimitsApi: BiLimitsApiRow[] = Array.isArray(biLimitsRes.data)
+          ? biLimitsRes.data
+          : [];
+
+        const biMerged: BiLimitDisplayRow[] = biLimitsApi.map((row) => ({
+          agentId: row.agentId,
+          agentName: userMap.get(row.agentId) ?? "Unknown",
+          tiers: BI_LIMIT_KEYS.reduce(
+            (acc, key) => {
+              acc[key] = row.tiers?.[key] ?? 0;
+              return acc;
+            },
+            {} as Record<BiLimitKey, number>
+          ),
+        }));
+
+        biMerged.sort((a, b) => a.agentName.localeCompare(b.agentName));
+
+        if (active) {
+          setRows(merged);
+          setBiLimitRows(biMerged);
+        }
       } catch {
         if (active)
           setError("Failed to load dashboard metrics. Please try again.");
@@ -271,6 +344,63 @@ export default function Dashboard() {
                         <td className="px-5 py-3 text-right text-gray-700">
                           {formatPercent(r.pifPercent)}
                         </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* BI Limit Breakdown */}
+          <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-800">
+                BI Limit Breakdown
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Auto policies only · current month
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <th className="text-left font-medium px-5 py-3">Agent</th>
+                    {BI_LIMIT_KEYS.map((key) => (
+                      <th
+                        key={key}
+                        className="text-right font-medium px-5 py-3"
+                      >
+                        {BI_LIMIT_LABELS[key]}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {biLimitRows.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-5 py-8 text-center text-gray-400"
+                      >
+                        No AUTO sales recorded this month.
+                      </td>
+                    </tr>
+                  ) : (
+                    biLimitRows.map((r) => (
+                      <tr key={r.agentId} className="hover:bg-gray-50">
+                        <td className="px-5 py-3 font-medium text-gray-800">
+                          {r.agentName}
+                        </td>
+                        {BI_LIMIT_KEYS.map((key) => (
+                          <td
+                            key={key}
+                            className="px-5 py-3 text-right text-gray-700"
+                          >
+                            {formatPercent(r.tiers[key])}
+                          </td>
+                        ))}
                       </tr>
                     ))
                   )}
