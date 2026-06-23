@@ -35,6 +35,13 @@ const BI_LIMIT_KEYS: BiLimitKey[] = [
   "LIMIT_500_500",
 ];
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const now = new Date();
+const YEAR_OPTIONS = Array.from({ length: 3 }, (_, i) => now.getFullYear() - i);
+
 const BI_LIMIT_LABELS: Record<BiLimitKey, string> = {
   LIMIT_25_50: "25/50",
   LIMIT_50_100: "50/100",
@@ -134,6 +141,8 @@ export default function Dashboard() {
   const [biLimitRows, setBiLimitRows] = useState<BiLimitDisplayRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(now.getFullYear());
 
   useEffect(() => {
     let active = true;
@@ -144,10 +153,10 @@ export default function Dashboard() {
       try {
         const [summaryRes, bundlesRes, pifRes, biLimitsRes, usersRes] =
           await Promise.all([
-            api.get("/metrics/summary"),
-            api.get("/metrics/bundles"),
-            api.get("/metrics/pif"),
-            api.get("/metrics/bi-limits"),
+            api.get("/metrics/summary", { params: { month, year } }),
+            api.get("/metrics/bundles", { params: { month, year } }),
+            api.get("/metrics/pif", { params: { month, year } }),
+            api.get("/metrics/bi-limits", { params: { month, year } }),
             api.get("/users"),
           ]);
 
@@ -217,7 +226,7 @@ export default function Dashboard() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [month, year]);
 
   // Office-wide aggregates.
   const totalSales = rows.reduce((sum, r) => sum + r.totalSales, 0);
@@ -244,18 +253,38 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
-          <p className="text-sm text-gray-500">This month's performance</p>
+          <p className="text-sm text-gray-500">Monthly performance</p>
         </div>
-        <Link
-          to="/new-sale"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          New Sale
-        </Link>
+        <div className="flex items-center gap-3">
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i + 1} value={i + 1}>{name}</option>
+            ))}
+          </select>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <Link
+            to="/new-sale"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Sale
+          </Link>
+        </div>
       </div>
 
       {error && (

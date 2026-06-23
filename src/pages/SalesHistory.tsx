@@ -96,6 +96,14 @@ const BI_LIMIT_LABELS: Record<BiLimit, string> = {
   LIMIT_500_500: "500/500",
 };
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const now = new Date();
+const YEAR_OPTIONS = Array.from({ length: 3 }, (_, i) => now.getFullYear() - i);
+
 const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 const inputClass =
   "w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -126,6 +134,9 @@ export default function SalesHistory() {
   const [successMsg, setSuccessMsg] = useState("");
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [year, setYear] = useState(now.getFullYear());
+
   const [filterAgentId, setFilterAgentId] = useState("ALL");
 
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
@@ -139,6 +150,23 @@ export default function SalesHistory() {
     clientName: string;
   } | null>(null);
 
+  // Fetch users once — static data, no need to refetch on month/year change.
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/users")
+      .then((res) => {
+        if (active) setUsers(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch(() => {
+        if (active) setError("Failed to load users.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Refetch sales whenever month or year changes.
   useEffect(() => {
     let active = true;
 
@@ -146,14 +174,8 @@ export default function SalesHistory() {
       setLoading(true);
       setError("");
       try {
-        const [salesRes, usersRes] = await Promise.all([
-          api.get("/sales"),
-          api.get("/users"),
-        ]);
-        if (active) {
-          setSales(Array.isArray(salesRes.data) ? salesRes.data : []);
-          setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
-        }
+        const res = await api.get("/sales", { params: { month, year } });
+        if (active) setSales(Array.isArray(res.data) ? res.data : []);
       } catch {
         if (active) setError("Failed to load sales. Please try again.");
       } finally {
@@ -165,7 +187,7 @@ export default function SalesHistory() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [month, year]);
 
   const userMap = useMemo(
     () => new Map(users.map((u) => [u.id, u.name])),
@@ -321,7 +343,29 @@ export default function SalesHistory() {
 
       {/* Filter bar */}
       {!loading && (
-        <div className="mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i + 1} value={i + 1}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {YEAR_OPTIONS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
           <select
             value={filterAgentId}
             onChange={(e) => setFilterAgentId(e.target.value)}
