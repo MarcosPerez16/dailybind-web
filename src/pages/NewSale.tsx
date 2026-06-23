@@ -7,7 +7,26 @@ interface User {
   name: string;
 }
 
-type PolicyType = "AUTO" | "HOME" | "RENTERS" | "CYCLE";
+type PolicyType =
+  | "AUTO"
+  | "HOME"
+  | "RENTERS"
+  | "CYCLE"
+  | "RV"
+  | "ATV"
+  | "BOAT"
+  | "CLASSIC_CAR"
+  | "MEXICO"
+  | "UMBRELLA"
+  | "JEWELRY"
+  | "IDENTITY_THEFT"
+  | "GOLF_CART"
+  | "RENTAL_HOME"
+  | "RENTAL_CONDO"
+  | "MANUFACTURED_HOME"
+  | "CONDO";
+
+const BUNDLE_ELIGIBLE: PolicyType[] = ["AUTO"];
 type BiLimit =
   | "LIMIT_25_50"
   | "LIMIT_50_100"
@@ -274,6 +293,19 @@ export default function NewSale() {
               <option value="HOME">Home</option>
               <option value="RENTERS">Renters</option>
               <option value="CYCLE">Cycle</option>
+              <option value="RV">RV</option>
+              <option value="ATV">ATV</option>
+              <option value="BOAT">Boat</option>
+              <option value="CLASSIC_CAR">Classic Car</option>
+              <option value="MEXICO">Mexico</option>
+              <option value="UMBRELLA">Umbrella</option>
+              <option value="JEWELRY">Jewelry</option>
+              <option value="IDENTITY_THEFT">Identity Theft</option>
+              <option value="GOLF_CART">Golf Cart</option>
+              <option value="RENTAL_HOME">Rental Home</option>
+              <option value="RENTAL_CONDO">Rental Condo</option>
+              <option value="MANUFACTURED_HOME">Manufactured Home</option>
+              <option value="CONDO">Condo</option>
             </select>
           </div>
 
@@ -317,7 +349,8 @@ export default function NewSale() {
             </div>
           )}
 
-          {/* Bundled? */}
+          {/* Bundled? — only for bundle-eligible policy types */}
+          {form.policyType && BUNDLE_ELIGIBLE.includes(form.policyType) && (
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -335,6 +368,7 @@ export default function NewSale() {
               Bundled?
             </label>
           </div>
+          )}
 
           {/* Bundled With — AUTO + isBundled only */}
           {isAuto && form.isBundled && (
