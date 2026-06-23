@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import NewSale from "./pages/NewSale";
+import SalesHistory from "./pages/SalesHistory";
 
 export default function App() {
   return (
@@ -27,6 +28,16 @@ export default function App() {
             <ProtectedRoute>
               <Layout>
                 <NewSale />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sales-history"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SalesHistory />
               </Layout>
             </ProtectedRoute>
           }
