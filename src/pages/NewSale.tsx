@@ -109,7 +109,7 @@ export default function NewSale() {
   function handleChange(
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) {
     const { name, value, type } = e.target;
     const checked =
@@ -137,7 +137,7 @@ export default function NewSale() {
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     if (submitting) return;
 
@@ -170,7 +170,9 @@ export default function NewSale() {
       setSuccessMsg("Sale recorded successfully!");
       successTimer.current = setTimeout(() => setSuccessMsg(""), 4000);
     } catch {
-      setSubmitError("Failed to save sale. Please check your entries and try again.");
+      setSubmitError(
+        "Failed to save sale. Please check your entries and try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -351,23 +353,23 @@ export default function NewSale() {
 
           {/* Bundled? — only for bundle-eligible policy types */}
           {form.policyType && BUNDLE_ELIGIBLE.includes(form.policyType) && (
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isBundled"
-              name="isBundled"
-              checked={form.isBundled}
-              onChange={handleChange}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              disabled={formDisabled}
-            />
-            <label
-              htmlFor="isBundled"
-              className="text-sm font-medium text-gray-700"
-            >
-              Bundled?
-            </label>
-          </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isBundled"
+                name="isBundled"
+                checked={form.isBundled}
+                onChange={handleChange}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                disabled={formDisabled}
+              />
+              <label
+                htmlFor="isBundled"
+                className="text-sm font-medium text-gray-700"
+              >
+                Bundled?
+              </label>
+            </div>
           )}
 
           {/* Bundled With — AUTO + isBundled only */}

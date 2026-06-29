@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import NewSale from "./pages/NewSale";
 import SalesHistory from "./pages/SalesHistory";
+import Account from "./pages/Account";
 
 export default function App() {
   return (
@@ -38,6 +39,16 @@ export default function App() {
             <ProtectedRoute>
               <Layout>
                 <SalesHistory />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Account />
               </Layout>
             </ProtectedRoute>
           }
