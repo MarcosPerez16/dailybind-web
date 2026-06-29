@@ -97,8 +97,18 @@ const BI_LIMIT_LABELS: Record<BiLimit, string> = {
 };
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const now = new Date();
@@ -191,7 +201,7 @@ export default function SalesHistory() {
 
   const userMap = useMemo(
     () => new Map(users.map((u) => [u.id, u.name])),
-    [users]
+    [users],
   );
 
   const filteredSales = useMemo(() => {
@@ -232,7 +242,7 @@ export default function SalesHistory() {
   function handleEditFormChange(
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) {
     const { name, value, type } = e.target;
     const checked =
@@ -259,7 +269,7 @@ export default function SalesHistory() {
     });
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.SubmitEvent) {
     e.preventDefault();
     if (!editingSale || !editForm || saving) return;
 
@@ -288,7 +298,7 @@ export default function SalesHistory() {
       const res = await api.patch(`/sales/${editingSale.id}`, payload);
       const updated: Sale = res.data ?? { ...editingSale, ...payload };
       setSales((prev) =>
-        prev.map((s) => (s.id === editingSale.id ? updated : s))
+        prev.map((s) => (s.id === editingSale.id ? updated : s)),
       );
       closeModal();
       if (successTimer.current) clearTimeout(successTimer.current);
@@ -296,7 +306,7 @@ export default function SalesHistory() {
       successTimer.current = setTimeout(() => setSuccessMsg(""), 4000);
     } catch {
       setSaveError(
-        "Failed to save changes. Please check your entries and try again."
+        "Failed to save changes. Please check your entries and try again.",
       );
     } finally {
       setSaving(false);
@@ -386,11 +396,10 @@ export default function SalesHistory() {
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-base font-semibold text-gray-800">
-              Sales
-            </h3>
+            <h3 className="text-base font-semibold text-gray-800">Sales</h3>
             <p className="text-xs text-gray-400 mt-0.5">
-              {filteredSales.length} entr{filteredSales.length === 1 ? "y" : "ies"}
+              {filteredSales.length} entr
+              {filteredSales.length === 1 ? "y" : "ies"}
             </p>
           </div>
           <div className="overflow-x-auto">
