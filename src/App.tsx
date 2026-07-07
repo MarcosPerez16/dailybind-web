@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import NewSale from "./pages/NewSale";
 import SalesHistory from "./pages/SalesHistory";
 import Account from "./pages/Account";
+import Admin from "./pages/Admin";
 
 export default function App() {
   return (
@@ -49,6 +50,16 @@ export default function App() {
             <ProtectedRoute>
               <Layout>
                 <Account />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Admin />
               </Layout>
             </ProtectedRoute>
           }
