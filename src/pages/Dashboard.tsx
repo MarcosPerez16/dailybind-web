@@ -179,7 +179,7 @@ export default function Dashboard() {
           agentId: s.agentId,
           agentName: s.agentName,
           totalSales: s.totalSales ?? 0,
-          totalPremium: s.totalPremium ?? 0,
+          totalPremium: Number(s.totalPremium ?? 0),
           bundlePercent: bundleByAgent.get(s.agentId) ?? 0,
           pifPercent: pifByAgent.get(s.agentId) ?? 0,
         }));
